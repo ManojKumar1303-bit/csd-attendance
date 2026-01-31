@@ -3,11 +3,24 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 
-dotenv.config(); // ✅ MUST be at top
+dotenv.config();
 
 const app = express();
 
-app.use(cors());
+// ==========================
+// CORS (production safe)
+// ==========================
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://merncrud123.netlify.app",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
+
 app.use(express.json());
 
 // ==========================
@@ -19,7 +32,7 @@ mongoose
   .catch((err) => console.error(err));
 
 // ==========================
-// MONGOOSE SCHEMA + MODEL
+// SCHEMA & MODEL
 // ==========================
 const PersonSchema = new mongoose.Schema({
   name: String,
@@ -29,24 +42,22 @@ const PersonSchema = new mongoose.Schema({
 const Person = mongoose.model("Person", PersonSchema);
 
 // ==========================
-// GET ALL PEOPLE
+// ROUTES
 // ==========================
+
+// GET ALL
 app.get("/", async (req, res) => {
   const people = await Person.find();
   res.json(people);
 });
 
-// ==========================
-// ADD NEW PERSON
-// ==========================
+// CREATE
 app.post("/", async (req, res) => {
   const newPerson = await Person.create(req.body);
   res.json(newPerson);
 });
 
-// ==========================
-// UPDATE PERSON
-// ==========================
+// UPDATE
 app.put("/:id", async (req, res) => {
   const updated = await Person.findByIdAndUpdate(
     req.params.id,
@@ -56,9 +67,7 @@ app.put("/:id", async (req, res) => {
   res.json(updated);
 });
 
-// ==========================
-// DELETE PERSON
-// ==========================
+// DELETE
 app.delete("/:id", async (req, res) => {
   await Person.findByIdAndDelete(req.params.id);
   res.json({ message: "Person Deleted" });
